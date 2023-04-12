@@ -3,11 +3,11 @@ import 'dart:isolate';
 
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
-import 'package:object_detection/tflite/classifier.dart';
-import 'package:object_detection/tflite/recognition.dart';
-import 'package:object_detection/tflite/stats.dart';
-import 'package:object_detection/ui/camera_view_singleton.dart';
-import 'package:object_detection/utils/isolate_utils.dart';
+import 'package:tflite_flutter_test/tflite/classifier.dart';
+import 'package:tflite_flutter_test/tflite/recognition.dart';
+import 'package:tflite_flutter_test/tflite/stats.dart';
+import 'package:tflite_flutter_test/ui/camera_view_singleton.dart';
+import 'package:tflite_flutter_test/utils/isolate_utils.dart';
 
 /// [CameraView] sends each frame for inference
 class CameraView extends StatefulWidget {
@@ -25,19 +25,19 @@ class CameraView extends StatefulWidget {
 
 class _CameraViewState extends State<CameraView> with WidgetsBindingObserver {
   /// List of available cameras
-  List<CameraDescription> cameras;
+  List<CameraDescription> cameras=[];
 
   /// Controller
-  CameraController cameraController;
+ late CameraController cameraController;
 
   /// true when inference is ongoing
-  bool predicting;
+  late bool predicting;
 
   /// Instance of [Classifier]
-  Classifier classifier;
+  late Classifier classifier;
 
   /// Instance of [IsolateUtils]
-  IsolateUtils isolateUtils;
+  late IsolateUtils isolateUtils;
 
   @override
   void initState() {
@@ -56,7 +56,7 @@ class _CameraViewState extends State<CameraView> with WidgetsBindingObserver {
     initializeCamera();
 
     // Create an instance of classifier to load model and labels
-    classifier = Classifier();
+    // classifier = Classifier();
 
     // Initially predicting = false
     predicting = false;
@@ -77,10 +77,10 @@ class _CameraViewState extends State<CameraView> with WidgetsBindingObserver {
       /// previewSize is size of each image frame captured by controller
       ///
       /// 352x288 on iOS, 240p (320x240) on Android with ResolutionPreset.low
-      Size previewSize = cameraController.value.previewSize;
+      Size? previewSize = cameraController.value.previewSize;
 
       /// previewSize is size of raw input image to the model
-      CameraViewSingleton.inputImageSize = previewSize;
+      CameraViewSingleton.inputImageSize = previewSize!;
 
       // the display width of image on screen is
       // same as screenWidth while maintaining the aspectRatio
@@ -148,7 +148,7 @@ class _CameraViewState extends State<CameraView> with WidgetsBindingObserver {
   Future<Map<String, dynamic>> inference(IsolateData isolateData) async {
     ReceivePort responsePort = ReceivePort();
     isolateUtils.sendPort
-        .send(isolateData..responsePort = responsePort.sendPort);
+        ?.send(isolateData..responsePort = responsePort.sendPort);
     var results = await responsePort.first;
     return results;
   }

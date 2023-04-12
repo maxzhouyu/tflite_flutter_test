@@ -1,9 +1,9 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:object_detection/tflite/recognition.dart';
-import 'package:object_detection/tflite/stats.dart';
-import 'package:object_detection/ui/box_widget.dart';
-import 'package:object_detection/ui/camera_view_singleton.dart';
+import 'package:tflite_flutter_test/tflite/recognition.dart';
+import 'package:tflite_flutter_test/tflite/stats.dart';
+import 'package:tflite_flutter_test/ui/box_widget.dart';
+import 'package:tflite_flutter_test/ui/camera_view_singleton.dart';
 
 import 'camera_view.dart';
 
@@ -15,10 +15,10 @@ class HomeView extends StatefulWidget {
 
 class _HomeViewState extends State<HomeView> {
   /// Results to draw bounding boxes
-  List<Recognition> results;
+  List<Recognition> results=[];
 
   /// Realtime stats
-  Stats stats;
+  Stats? stats;
 
   /// Scaffold Key
   GlobalKey<ScaffoldState> scaffoldKey = GlobalKey();
@@ -79,11 +79,11 @@ class _HomeViewState extends State<HomeView> {
                                 child: Column(
                                   children: [
                                     StatsRow('Inference time:',
-                                        '${stats.inferenceTime} ms'),
+                                        '${stats!.inferenceTime} ms'),
                                     StatsRow('Total prediction time:',
-                                        '${stats.totalElapsedTime} ms'),
+                                        '${stats!.totalElapsedTime} ms'),
                                     StatsRow('Pre-processing time:',
-                                        '${stats.preProcessingTime} ms'),
+                                        '${stats!.preProcessingTime} ms'),
                                     StatsRow('Frame',
                                         '${CameraViewSingleton.inputImageSize?.width} X ${CameraViewSingleton.inputImageSize?.height}'),
                                   ],
