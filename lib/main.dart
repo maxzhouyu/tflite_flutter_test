@@ -1,41 +1,23 @@
 import 'package:flutter/material.dart';
-import 'package:tflite_flutter/tflite_flutter.dart';
+import 'package:flutter/services.dart';
+import 'package:tflite_flutter_test/ui/home_view.dart';
 
-void main() => runApp(const MaterialApp(
-      home: HomePage(),
-    ));
-
-class HomePage extends StatefulWidget {
-  const HomePage({Key? key}) : super(key: key);
-
-  @override
-  State<HomePage> createState() => _HomePageState();
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+  runApp(MyApp());
 }
 
-class _HomePageState extends State<HomePage> {
-  @override
-  void initState() {
-    initTflite();
-
-
-    super.initState();
-  }
-
+class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('tflite_flutter'),
+    return MaterialApp(
+      title: 'Object Detection TFLite',
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+        visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
-      body: Container(),
+      home: HomeView(),
     );
-  }
-
-  void initTflite() async{
-    final gpuDelegateV2 = GpuDelegateV2(options: GpuDelegateOptionsV2());
-
-    var interpreterOptions = InterpreterOptions()..addDelegate(gpuDelegateV2);
-    final interpreter = await Interpreter.fromAsset('detect.tflite',
-        options: interpreterOptions);
   }
 }
