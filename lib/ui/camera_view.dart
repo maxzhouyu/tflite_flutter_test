@@ -1,8 +1,9 @@
-import 'dart:io';
 import 'dart:isolate';
 
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
+import 'package:tflite_flutter/tflite_flutter.dart';
+import 'package:tflite_flutter_helper/tflite_flutter_helper.dart';
 import 'package:tflite_flutter_test/tflite/classifier.dart';
 import 'package:tflite_flutter_test/tflite/recognition.dart';
 import 'package:tflite_flutter_test/tflite/stats.dart';
@@ -19,16 +20,17 @@ class CameraView extends StatefulWidget {
 
   /// Constructor
   const CameraView(this.resultsCallback, this.statsCallback);
+
   @override
   _CameraViewState createState() => _CameraViewState();
 }
 
 class _CameraViewState extends State<CameraView> with WidgetsBindingObserver {
   /// List of available cameras
-  List<CameraDescription> cameras=[];
+  List<CameraDescription> cameras = [];
 
   /// Controller
- late CameraController cameraController;
+  CameraController? cameraController;
 
   /// true when inference is ongoing
   late bool predicting;
@@ -56,7 +58,11 @@ class _CameraViewState extends State<CameraView> with WidgetsBindingObserver {
     initializeCamera();
 
     // Create an instance of classifier to load model and labels
-    // classifier = Classifier();
+    classifier = Classifier(
+        interpreter: await Interpreter.fromAsset(
+          'detect.tflite',
+        ),
+        labels: await FileUtil.loadLabels("assets/labelmap.txt"));
 
     // Initially predicting = false
     predicting = false;
@@ -70,14 +76,14 @@ class _CameraViewState extends State<CameraView> with WidgetsBindingObserver {
     cameraController =
         CameraController(cameras[0], ResolutionPreset.low, enableAudio: false);
 
-    cameraController.initialize().then((_) async {
+    cameraController?.initialize().then((_) async {
       // Stream of image passed to [onLatestImageAvailable] callback
-      await cameraController.startImageStream(onLatestImageAvailable);
+      await cameraController?.startImageStream(onLatestImageAvailable);
 
       /// previewSize is size of each image frame captured by controller
       ///
       /// 352x288 on iOS, 240p (320x240) on Android with ResolutionPreset.low
-      Size? previewSize = cameraController.value.previewSize;
+      Size? previewSize = cameraController?.value.previewSize;
 
       /// previewSize is size of raw input image to the model
       CameraViewSingleton.inputImageSize = previewSize!;
@@ -93,13 +99,16 @@ class _CameraViewState extends State<CameraView> with WidgetsBindingObserver {
   @override
   Widget build(BuildContext context) {
     // Return empty container while the camera is not initialized
-    if (cameraController == null || !cameraController.value.isInitialized) {
+    if (cameraController == null ||
+        !(cameraController?.value.isInitialized ?? false)) {
       return Container();
     }
 
     return AspectRatio(
-        aspectRatio: cameraController.value.aspectRatio,
-        child: CameraPreview(cameraController));
+        aspectRatio: cameraController?.value.aspectRatio ?? 1,
+        child: cameraController == null
+            ? Container()
+            : CameraPreview(cameraController!));
   }
 
   /// Callback to receive each frame [CameraImage] perform inference on it
@@ -157,11 +166,11 @@ class _CameraViewState extends State<CameraView> with WidgetsBindingObserver {
   void didChangeAppLifecycleState(AppLifecycleState state) async {
     switch (state) {
       case AppLifecycleState.paused:
-        cameraController.stopImageStream();
+        cameraController?.stopImageStream();
         break;
       case AppLifecycleState.resumed:
-        if (!cameraController.value.isStreamingImages) {
-          await cameraController.startImageStream(onLatestImageAvailable);
+        if (!(cameraController?.value.isStreamingImages ?? false)) {
+          await cameraController?.startImageStream(onLatestImageAvailable);
         }
         break;
       default:
@@ -171,7 +180,7 @@ class _CameraViewState extends State<CameraView> with WidgetsBindingObserver {
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
-    cameraController.dispose();
+    cameraController?.dispose();
     super.dispose();
   }
 }
