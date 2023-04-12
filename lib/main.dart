@@ -14,12 +14,8 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   @override
-  void initState() async {
-    final gpuDelegateV2 = GpuDelegateV2(options: GpuDelegateOptionsV2());
-
-    var interpreterOptions = InterpreterOptions()..addDelegate(gpuDelegateV2);
-    final interpreter = await Interpreter.fromAsset('your_model.tflite',
-        options: interpreterOptions);
+  void initState() {
+    initTflite();
 
 
     super.initState();
@@ -33,5 +29,13 @@ class _HomePageState extends State<HomePage> {
       ),
       body: Container(),
     );
+  }
+
+  void initTflite() async{
+    final gpuDelegateV2 = GpuDelegateV2(options: GpuDelegateOptionsV2());
+
+    var interpreterOptions = InterpreterOptions()..addDelegate(gpuDelegateV2);
+    final interpreter = await Interpreter.fromAsset('detect.tflite',
+        options: interpreterOptions);
   }
 }
